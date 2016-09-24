@@ -42,6 +42,9 @@ update msg model =
           in
             ({ model | clip = Just newClip}, Cmd.map Measured cmd)
 
+    PlayError ->
+      {model | count = model.count + 1} ! [Random.generate ClipLoad (Video.random model.videos)]
+
     PlayEnd ->
       {model | count = model.count + 1} ! [Random.generate ClipLoad (Video.random model.videos)]
 

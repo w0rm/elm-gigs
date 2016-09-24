@@ -1,7 +1,7 @@
 module View exposing (view)
 
 import Html exposing (div, Html, node)
-import Html.Attributes exposing (style, content, type', src, attribute, property, autoplay)
+import Html.Attributes exposing (style, content, type', src, attribute, property, autoplay, preload)
 import Html.Events exposing (on)
 import Svg exposing (svg, text', text, mask, rect, tspan, g)
 import Svg.Attributes exposing (viewBox, id, x, y, dy, dx, width, height, fill)
@@ -10,7 +10,7 @@ import Clip exposing (Clip, Word, maxWidth)
 import Json.Decode as Decode
 import Message exposing (Msg(..))
 import Window exposing (Size)
-import Json.Encode exposing (bool)
+import Json.Encode exposing (bool, string)
 
 
 (:::) : a -> b -> (a, b)
@@ -69,11 +69,13 @@ renderClip count dimensions {video, cover, lines} =
       ]
       [ Html.video
           [ type' "video/mp4"
-          , src (video ++ "?" ++ toString count)
-          , attribute "cover" cover
+          , src (video ++ "#" ++ toString count)
+          , attribute "poster" cover
           , autoplay True
+          , preload "none"
           , property "muted" (bool False)
           , on "ended" (Decode.succeed PlayEnd)
+          , on "error" (Decode.succeed PlayError)
           , style
               [ "position" ::: "absolute"
               , "width" ::: "100%"

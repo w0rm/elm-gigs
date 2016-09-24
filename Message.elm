@@ -10,5 +10,6 @@ type Msg
   | VideosError Http.Error
   | ClipLoad (Maybe Video)
   | Measured Word
+  | PlayError
   | PlayEnd
   | WindowSize Size
