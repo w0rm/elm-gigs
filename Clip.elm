@@ -1,9 +1,10 @@
-module Clip exposing (Clip, Word, initial, update, lineWidth, maxWidth)
+module Clip exposing (Clip, Word, initial, update, lineWidth, maxWidth, minSpace)
 
 import Video exposing (Video)
 import String
 import Native.Measure
 import Task
+import Process
 
 
 maxWidth : Int
@@ -16,6 +17,10 @@ maxLines = 8
 
 minSpace : Int
 minSpace = 30
+
+
+showProgress : Bool
+showProgress = False
 
 
 type alias Word =
@@ -94,13 +99,12 @@ update ({text, width} as newWord) clip =
     else
       case String.uncons clip.caption of
         Just (' ', rest) -> -- got a space, end of word
-          ( { clip
+          update (Word "" 0)
+            { clip
             | line = addWord newWord clip.line  -- add new word
             , caption = rest ++ " "
             , word = Word "" 0  -- start new word
             }
-          , measureText ""
-          )
         Just (char, rest) ->
           ( { clip
             | word = newWord
@@ -114,5 +118,8 @@ update ({text, width} as newWord) clip =
 
 measureText : String -> Cmd Word
 measureText text =
-  Native.Measure.measure "Mod" "106px" text
-    |> Task.perform identity (.width >> Word text)
+  Task.perform identity (.width >> Word text)
+    ( text
+        |> Native.Measure.measure "Mod" "106px"
+        |> (if showProgress then always >> Task.andThen (Process.sleep 50) else identity)
+    )

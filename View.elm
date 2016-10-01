@@ -6,11 +6,12 @@ import Html.Events exposing (on)
 import Svg exposing (svg, text', text, mask, rect, tspan, g)
 import Svg.Attributes exposing (viewBox, id, x, y, dy, dx, width, height, fill)
 import Model exposing (Model)
-import Clip exposing (Clip, Word, maxWidth)
+import Clip exposing (Clip, Word, maxWidth, minSpace)
 import Json.Decode as Decode
 import Message exposing (Msg(..))
 import Window exposing (Size)
 import Json.Encode exposing (bool, string)
+import String
 
 
 (:::) : a -> b -> (a, b)
@@ -28,11 +29,15 @@ view {clip, size, count} =
     ]
 
 
-renderLine : Int -> List Word -> Html Msg
-renderLine n line =
+renderLine : Int -> Int -> List Word -> Html Msg
+renderLine size n line =
   let
     wordsWidth = List.map .width line |> List.sum
-    spaceSize = toFloat (maxWidth - wordsWidth) / toFloat (List.length line - 1)
+    spaceSize =
+      if n < size then
+        toFloat (maxWidth - wordsWidth) / toFloat (List.length line - 1)
+      else
+        toFloat minSpace
   in
     text'
       [ y ((0.75 * toFloat (n + 1) |> toString) ++ "em")
@@ -50,9 +55,9 @@ renderWord spaceSize n w =
 
 
 renderClip : Int -> Size -> Clip -> Html Msg
-renderClip count dimensions {video, cover, lines} =
+renderClip count dimensions {video, cover, lines, line, word, caption} =
   let
-    size = min dimensions.width dimensions.height - 50
+    size = min (min dimensions.width dimensions.height - 50) 800
     left = (dimensions.width - size) // 2
     top = (dimensions.height - size) // 2
   in
@@ -93,7 +98,7 @@ renderClip count dimensions {video, cover, lines} =
               ]
           ]
           [ mask
-              [ id "mask" ]
+              [ id ("mask-" ++ toString (String.length word.text)) ] -- changing id of the mask forces redraw
               [ rect
                   [ x "0"
                   , y "0"
@@ -102,7 +107,7 @@ renderClip count dimensions {video, cover, lines} =
                   , fill "#fff"
                   ]
                   []
-              , g [] (List.indexedMap renderLine lines)
+              , g [] (List.indexedMap (renderLine (List.length lines)) (lines ++ [line ++ [word]]))
               ]
           , rect
               [ x "0"
@@ -110,7 +115,7 @@ renderClip count dimensions {video, cover, lines} =
               , width "100%"
               , height "100%"
               , fill "#fff"
-              , attribute "mask" "url(#mask)"
+              , attribute "mask" ("url(#mask-" ++ toString (String.length word.text) ++ ")")
               ]
               []
           ]
