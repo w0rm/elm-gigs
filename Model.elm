@@ -6,13 +6,13 @@ import Window exposing (Size)
 
 
 type alias Model =
-  { videos : List Video
-  , clip : Maybe Clip
-  , count : Int
-  , size : Size
-  }
+    { videos : List Video
+    , clip : Maybe Clip
+    , count : Int
+    , size : Size
+    }
 
 
 initial : Model
 initial =
-  Model [] Nothing 0 (Size 0 0)
+    Model [] Nothing 0 (Size 0 0)
