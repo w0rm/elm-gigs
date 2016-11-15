@@ -15,20 +15,6 @@ import Window
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        LoadVideos ->
-            ( model
-            , Http.send
-                (\result ->
-                    case result of
-                        Ok videos ->
-                            VideosLoad videos
-
-                        Err err ->
-                            VideosError err
-                )
-                (Video.load "unsoundscapes" "/data.json")
-            )
-
         VideosLoad videos ->
             { model
                 | videos = videos
@@ -79,7 +65,20 @@ main =
             ( Model.initial
             , Cmd.batch
                 [ Native.Measure.measure "Mod" "106px" "trigger the font"
-                    |> Task.perform (always LoadVideos)
+                    |> Task.andThen
+                        (\_ ->
+                            Http.toTask
+                                (Video.load "unsoundscapes" "/data.json")
+                        )
+                    |> Task.attempt
+                        (\result ->
+                            case result of
+                                Err err ->
+                                    VideosError err
+
+                                Ok videos ->
+                                    VideosLoad videos
+                        )
                 , Task.perform WindowSize Window.size
                 ]
             )
