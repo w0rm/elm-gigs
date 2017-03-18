@@ -1,0 +1,23 @@
+language: node_js
+cache:
+  directories:
+    - node_modules
+    - elm-stuff
+git:
+  depth: 1
+branches:
+  only:
+    - master
+install:
+  - npm install -g elm@0.18.0
+env:
+  global:
+    - secure: "AQqI3qw314KPxKRx4Ubz3MK9wlh/eYgLxPgCvXb3eP4on0twbCeVwGpeOULCLgwHajuCMX8hzV3osAYSw7BY7FU3UmXrnowZF+Cjcni+3L2yUJwSRFji+cLMcW+Q7oAf6+mTQIiflIECPbT9l2BxGqJnir517L27jwjVIq7Fm3NjvmQF+eaFczQAq7djGYZIjPk9biCDU+sj1horhOXrR2as9XPi2mhSxHrsblY5NsCv1AlQKBNjxSNq6M1xLE8idnSW9T/uDk8p4HrTGrFzVuNbX3GiCjMPzhMHKSigkrKmjlfROYhumGl54QTj7cQa5j8/fdiZWckuxRiq86YLmDskY2zm9FP7wlWKD9VpQt8B/hssgclVklDD4OFJzBn+E2Cu93O3QrZTdQqNLi37l9WA5jIbiXB9yqiqik1aiZc4cIcavP/WNvgFkUShibSIf1UOvKPV+e+b3EGdqEQg3bW1SpyNTKN11t8ol09mPx9D3QJbjrnnwkCdy0n+MJSeYjNuDgBhNk4uTlgxxn0H68efTzNtcChJABG4q3eb5hYD+jE2HUtqjTQ/Dc6v+g1/wn2xx5fpS0+qItmBZbHlu8ICpYfRdUkhuZdEQ2CiwPCz12mGIZuVd0bYTnTj+yfsHAE7UaJfxI7FWIbKpfzhQtQY8Y57mDi1o+7ACen+se8="
+    - secure: "eTsRk5uLTakUMhMstfWWhIczycPcOYQDxyeY3Xx3BNcXki6ndiJxu9k+4stbM49nMMAjmjyiEAJ1x4VAeWDRXOW7I6SaJCO/r9AEjQHtWod/Wz8RTQj8sVKZwL7jAYwls42r3gyjsMb1Wlrd35JFhgLYRZt+FTEjy02OYx+Wffa+kIu3THDirYjb2Kzzl7YwKSyApBHkFwv7VQJKLAqK04AdicxUWfGihote0VNMOxWCeWPnVl8ZEOUCAzn9SuP2tD+9UBjP88QQe67qdR2/HNptWasq5OThlBpDuA9LcKNbe2q8IF7fTIzRXVv3e96zO9m5qBxutDBoRL02IQ4vGRpMKCN2DlhBqvkjOAN9K9ndxD6zzm/ZPNh+1YPne3Q50s8AjqMTBhAdkn1Pwieg48O+dSXeM2yUWnt3rThdLb/0THWsthWDcbLiCr789cc+IgR8h104Jn7bP59YpVToQyECU/Q1TwCeC+82+MX0Hulqockew3hoN2z3dfwaGcre98jc2avw8J7eJgru0Vex846pipe2ZGHtDij/yRfty8722w7S5nrXanFN4df7lCij+nDENpgvYNa3ifAEcgESp3XSip5DLl1pZr1FYaJJIV+G8Ue3dD9PwM3KCL5SZjeNnCxxqPLgbjjrvkK43+6w1jckrpBy2V4o28+DwQzUQ+A="
+script:
+  - ./download.sh
+  - ./gh-pages.sh
+notifications:
+  email:
+    recipients:
+      - unsoundscapes@gmail.com
