@@ -19,6 +19,11 @@ import String
     (,)
 
 
+toPx : number -> String
+toPx px =
+    toString px ++ "px"
+
+
 view : Model -> Html Msg
 view { clip, size, count } =
     div
@@ -57,7 +62,7 @@ renderWord spaceSize n w =
     if n == 0 then
         tspan [] [ text w.text ]
     else
-        tspan [ dx (toString spaceSize ++ "px") ] [ text w.text ]
+        tspan [ dx (toPx spaceSize) ] [ text w.text ]
 
 
 renderClip : Int -> Size -> Clip -> Html Msg
@@ -75,12 +80,11 @@ renderClip count dimensions { video, cover, lines, line, word, caption } =
         div
             [ style
                 [ "position" ::: "absolute"
-                , "left" ::: (toString left ++ "px")
-                , "top" ::: (toString top ++ "px")
-                , "width" ::: (toString size ++ "px")
-                , "height" ::: (toString size ++ "px")
-                , "font-size" ::: "106px"
-                , "font-family" ::: "Mod"
+                , "left" ::: toPx left
+                , "top" ::: toPx top
+                , "width" ::: toPx size
+                , "height" ::: toPx size
+                , "font" ::: Clip.font
                 ]
             ]
             [ Html.video

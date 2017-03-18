@@ -1,15 +1,15 @@
 #!/bin/sh
+set -e
 
-url="https://api.instagram.com/v1/users/self/media/recent/?access_token=$ACCESS_TOKEN&count=50"
+URL="https://api.instagram.com/v1/users/self/media/recent/?access_token=$ACCESS_TOKEN&count=30"
+RESPONSE=$(curl -s "$URL")
 
-echo '{"data":[]}' > data.json
+if [ -z "$RESPONSE" ]; then
+  echo "Got empty response from Instagram" 1>&2
+  exit 1
+fi
 
-while [[ $url != null ]]; do
-  response=$(curl -s "$url")
-  echo $response > out.json
-  url=$(jq --raw-output '.pagination.next_url' out.json)
-  jq -s '.[0].data + .[1].data | map(select(contains({tags: ["unsoundscapes"]}))) | {data: .}' data.json out.json > result.json
-  rm out.json data.json
-  mv result.json data.json
-  sleep 2
-done
+echo $RESPONSE > out.json
+jq -s '.[0] + (.[1].data | map(select(contains({ tags: ["unsoundscapes"] })))) | unique_by(.id) | sort_by(.created_time | tonumber)' videos.json out.json > result.json
+rm out.json videos.json
+mv result.json videos.json

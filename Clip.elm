@@ -1,10 +1,15 @@
-module Clip exposing (Clip, Word, initial, update, lineWidth, maxWidth, minSpace)
+module Clip exposing (Clip, Word, initial, update, lineWidth, maxWidth, minSpace, font)
 
 import Video exposing (Video)
 import String
 import Native.Measure
 import Task
 import Process
+
+
+font : String
+font =
+    "106px Mod"
 
 
 maxWidth : Int
@@ -142,7 +147,7 @@ measureText text =
     Task.perform
         (.width >> Word text)
         (text
-            |> Native.Measure.measure "Mod" "106px"
+            |> Native.Measure.measure font
             |> (if showProgress then
                     Task.andThen
                         (\val ->

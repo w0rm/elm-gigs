@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
-    "summary": "helpful summary of your project, less than 80 characters",
-    "repository": "https://github.com/w0rm/elm-unsoundscapes2.git",
+    "summary": "The short videoclips I took at the concerts",
+    "repository": "https://github.com/w0rm/elm-gigs.git",
     "license": "MIT",
     "source-directories": [
         "."
