@@ -9,6 +9,8 @@ if [ -z "$RESPONSE" ]; then
   exit 1
 fi
 
+git checkout master
+
 # Append new gigs
 echo $RESPONSE > out.json
 jq -s '.[0] + (.[1].data | map(select(contains({ tags: ["unsoundscapes"] })))) | unique_by(.id) | sort_by(.created_time | tonumber)' videos.json out.json > result.json
