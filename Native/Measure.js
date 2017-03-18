@@ -1,15 +1,13 @@
-var _w0rm$elm_unsoundscapes2$Native_Measure = (function () {
+var _w0rm$elm_gigs$Native_Measure = (function () {
 
-  function measure (fontFamily, fontSize, text) {
+  function measure (font, text) {
     return _elm_lang$core$Native_Scheduler.nativeBinding(function (callback) {
       var node = document.createElement('div');
       var dimensions;
       node.style.whiteSpace = 'nowrap';
       node.style.position = 'absolute';
       node.style.visibility = 'hidden';
-      node.style.fontFamily = fontFamily;
-      node.style.fontSize = fontSize;
-
+      node.style.font = font;
       node.innerHTML = text;
 
       document.body.appendChild(node);
@@ -27,7 +25,7 @@ var _w0rm$elm_unsoundscapes2$Native_Measure = (function () {
   }
 
   return {
-    measure: F3(measure)
+    measure: F2(measure)
   };
 
 })();

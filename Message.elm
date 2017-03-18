@@ -7,8 +7,7 @@ import Window exposing (Size)
 
 
 type Msg
-    = VideosLoad (List Video)
-    | VideosError Http.Error
+    = VideosLoad (Result Http.Error (List Video))
     | ClipLoad (Maybe Video)
     | Measured Word
     | PlayError

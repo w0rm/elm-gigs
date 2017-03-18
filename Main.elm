@@ -15,14 +15,16 @@ import Window
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        VideosLoad videos ->
-            { model
-                | videos = videos
-            }
-                ! [ Random.generate ClipLoad (Video.random videos) ]
+        VideosLoad videosResult ->
+            case videosResult of
+                Ok videos ->
+                    { model
+                        | videos = videos
+                    }
+                        ! [ Random.generate ClipLoad (Video.random videos) ]
 
-        VideosError _ ->
-            model ! []
+                Err _ ->
+                    model ! []
 
         ClipLoad maybeVideo ->
             case maybeVideo of
@@ -64,25 +66,14 @@ main =
         { init =
             ( Model.initial
             , Cmd.batch
-                [ Native.Measure.measure "Mod" "106px" "trigger the font"
+                [ Native.Measure.measure Clip.font "trigger the font"
                     |> Task.andThen
-                        (\_ ->
-                            Http.toTask
-                                (Video.load "unsoundscapes" "/data.json")
-                        )
-                    |> Task.attempt
-                        (\result ->
-                            case result of
-                                Err err ->
-                                    VideosError err
-
-                                Ok videos ->
-                                    VideosLoad videos
-                        )
+                        (always (Http.toTask (Http.get "/videos.json" Video.videos)))
+                    |> Task.attempt VideosLoad
                 , Task.perform WindowSize Window.size
                 ]
             )
         , view = View.view
         , update = update
-        , subscriptions = (\model -> Window.resizes WindowSize)
+        , subscriptions = always (Window.resizes WindowSize)
         }
