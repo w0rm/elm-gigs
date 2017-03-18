@@ -19,6 +19,8 @@ if [[ `git status --porcelain` ]]; then
   exit 0
 fi
 
+git config --global user.email "clankga@mail.ru"
+git config --global user.name "Andrey Kuzmin (via Travis CI)"
 git add videos.json
-git commit -m "Update videos"
+git commit -m "Add new gigs"
 git push "https://${GITHUB_TOKEN}@github.com/w0rm/elm-gigs.git" master

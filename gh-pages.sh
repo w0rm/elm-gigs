@@ -19,4 +19,6 @@ echo "gigs.unsoundscapes.com" >> CNAME
 git init
 git add .
 git commit -m "Deploy to GitHub Pages"
+git config --global user.email "clankga@mail.ru"
+git config --global user.name "Andrey Kuzmin (via Travis CI)"
 git push --force "https://${GITHUB_TOKEN}@github.com/w0rm/elm-gigs.git" master:gh-pages
