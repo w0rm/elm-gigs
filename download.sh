@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 URL="https://api.instagram.com/v1/users/self/media/recent/?access_token=$ACCESS_TOKEN&count=30"
