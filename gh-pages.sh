@@ -16,8 +16,8 @@ cd gh-pages
 echo "gigs.unsoundscapes.com" >> CNAME
 
 # init branch and commit
-git config user.name "Andrey Kuzmin (via Travis CI)"
 git init
+git config user.name "Andrey Kuzmin (via Travis CI)"
 git add .
 git commit -m "Deploy to GitHub Pages"
 git push --force "https://${GITHUB_TOKEN}@github.com/w0rm/elm-gigs.git" master:gh-pages
