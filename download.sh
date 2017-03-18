@@ -22,7 +22,7 @@ if [[ `git status --porcelain` ]]; then
   git config user.name "Andrey Kuzmin (via Travis CI)"
   git config user.email "clankga@mail.ru"
   git add videos.json
-  git commit -m "Add new gigs"
+  git commit -m "Add new gigs [skip ci]"
   git push "https://${GITHUB_TOKEN}@github.com/w0rm/elm-gigs.git" master
 else
   echo "No updates from Instagram"

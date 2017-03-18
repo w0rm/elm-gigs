@@ -20,5 +20,5 @@ git init
 git config user.name "Andrey Kuzmin (via Travis CI)"
 git config user.email "clankga@mail.ru"
 git add .
-git commit -m "Deploy to GitHub Pages"
+git commit -m "Deploy to GitHub Pages [skip ci]"
 git push --force "https://${GITHUB_TOKEN}@github.com/w0rm/elm-gigs.git" master:gh-pages
