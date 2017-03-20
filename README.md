@@ -1,5 +1,7 @@
 # Gigs
 
+**Note:** this demo only works in Chome and Firefox.
+
 The idea is to present the short videoclips I took at gigs from my [Instagram](https://www.instagram.com/unsoundscapes/).
 
 Each video is masked by a band's name using [the MOD font](http://www.fontfabric.com/mod-font/)
