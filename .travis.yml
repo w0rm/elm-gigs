@@ -4,7 +4,7 @@ cache:
     - node_modules
     - elm-stuff
 git:
-  depth: 1
+  depth: 150
 branches:
   only:
     - master
