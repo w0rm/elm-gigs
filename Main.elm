@@ -1,4 +1,4 @@
-module Main exposing (main)
+module Gigs exposing (main)
 
 import Html exposing (program)
 import View

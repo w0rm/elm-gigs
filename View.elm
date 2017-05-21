@@ -2,7 +2,7 @@ module View exposing (view)
 
 import Html exposing (div, Html, node)
 import Html.Attributes exposing (style, content, type_, src, attribute, property, autoplay, preload)
-import Html.Events exposing (on)
+import Html.Events exposing (on, onClick)
 import Svg exposing (svg, text_, text, mask, rect, tspan, g)
 import Svg.Attributes exposing (viewBox, id, x, y, dy, dx, width, height, fill)
 import Model exposing (Model)
@@ -85,7 +85,9 @@ renderClip count dimensions { video, cover, lines, line, word, caption } =
                 , "width" ::: toPx size
                 , "height" ::: toPx size
                 , "font" ::: Clip.font
+                , "cursor" ::: "pointer"
                 ]
+            , onClick PlayEnd
             ]
             [ Html.video
                 [ type_ "video/mp4"
