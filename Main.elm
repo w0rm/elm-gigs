@@ -1,60 +1,97 @@
 module Gigs exposing (main)
 
-import Html exposing (program)
+import Navigation
 import View
 import Http
-import Model exposing (Model)
+import Model exposing (Model, ClipState(..), VideosState(..))
 import Message exposing (..)
 import Video
 import Task
 import Clip
 import Random
 import Window
+import Navigation
+import Dict
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        VideosLoad videosResult ->
-            case videosResult of
-                Ok videos ->
-                    { model
-                        | videos = videos
-                    }
-                        ! [ Random.generate ClipLoad (Video.random videos) ]
+        VideosLoad (Ok videos) ->
+            ( { model | videos = Success videos }
+            , case model.clip of
+                Url videoId ->
+                    Task.succeed videoId |> Task.perform ClipLoad
 
-                Err _ ->
-                    model ! []
+                _ ->
+                    Random.generate RandomVideo (Video.random videos)
+            )
 
-        ClipLoad maybeVideo ->
-            case maybeVideo of
-                Just video ->
-                    let
-                        ( clip, cmd ) =
-                            Clip.initial video
-                    in
-                        ( { model | clip = Just clip }, Cmd.map Measured cmd )
+        VideosLoad (Err _) ->
+            ( model, Cmd.none )
 
-                Nothing ->
-                    model ! []
+        ClipLoad videoId ->
+            case model.videos of
+                NotAsked ->
+                    ( { model
+                        | clip =
+                            if videoId == "" then
+                                Initial
+                            else
+                                Url videoId
+                        , videos = Loading
+                      }
+                    , Cmd.batch
+                        [ Native.Measure.measure Clip.font "trigger the font"
+                            |> Task.andThen (always (Http.toTask (Http.get "/videos.json" Video.videos)))
+                            |> Task.attempt VideosLoad
+                        , Task.perform WindowSize Window.size
+                        ]
+                    )
+
+                Loading ->
+                    ( model, Cmd.none )
+
+                Success videos ->
+                    case Dict.get videoId videos of
+                        Just video ->
+                            let
+                                ( clip, cmd ) =
+                                    Clip.initial video
+                            in
+                                ( { model | clip = Loaded clip }
+                                , Cmd.map Measured cmd
+                                )
+
+                        Nothing ->
+                            ( model, Cmd.none )
 
         Measured line ->
             case model.clip of
-                Nothing ->
-                    model ! []
-
-                Just clip ->
+                Loaded clip ->
                     let
                         ( newClip, cmd ) =
                             Clip.update line clip
                     in
-                        ( { model | clip = Just newClip }, Cmd.map Measured cmd )
+                        ( { model | clip = Loaded newClip }
+                        , Cmd.map Measured cmd
+                        )
 
-        PlayError ->
-            { model | count = model.count + 1 } ! [ Random.generate ClipLoad (Video.random model.videos) ]
+                _ ->
+                    ( model, Cmd.none )
 
-        PlayEnd ->
-            { model | count = model.count + 1 } ! [ Random.generate ClipLoad (Video.random model.videos) ]
+        PlayRandom ->
+            ( { model | count = model.count + 1 }
+            , case model.videos of
+                Success videos ->
+                    Random.generate RandomVideo (Video.random videos)
+
+                _ ->
+                    Cmd.none
+            )
+
+        RandomVideo videoId ->
+            ( model, Navigation.newUrl ("#" ++ videoId) )
 
         WindowSize size ->
             { model | size = size } ! []
@@ -62,17 +99,9 @@ update msg model =
 
 main : Program Never Model Msg
 main =
-    program
-        { init =
-            ( Model.initial
-            , Cmd.batch
-                [ Native.Measure.measure Clip.font "trigger the font"
-                    |> Task.andThen
-                        (always (Http.toTask (Http.get "/videos.json" Video.videos)))
-                    |> Task.attempt VideosLoad
-                , Task.perform WindowSize Window.size
-                ]
-            )
+    Navigation.program
+        (.hash >> String.dropLeft 1 >> ClipLoad)
+        { init = .hash >> String.dropLeft 1 >> ClipLoad >> ((flip update) Model.initial)
         , view = View.view
         , update = update
         , subscriptions = always (Window.resizes WindowSize)

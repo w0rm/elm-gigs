@@ -3,26 +3,36 @@ module Video exposing (Video, videos, random)
 import Json.Decode as Decode exposing (Decoder)
 import Random exposing (Generator)
 import String
+import Dict exposing (Dict)
 
 
 type alias Video =
-    { video : String
+    { id : String
+    , video : String
     , cover : String
     , caption : String
     }
 
 
-videos : Decoder (List Video)
+videos : Decoder (Dict String Video)
 videos =
     Decode.map
-        (List.filterMap identity)
+        (List.filterMap identity >> Dict.fromList)
         (Decode.list (Decode.maybe video))
 
 
-video : Decoder Video
+{-| Point free or die: <https://www.youtube.com/watch?v=seVSlKazsNk>
+-}
+videoWithId : String -> String -> String -> String -> ( String, Video )
+videoWithId id =
+    ((<<) << (<<) << (<<)) ((,) id) (Video id)
+
+
+video : Decoder ( String, Video )
 video =
-    Decode.map3
-        Video
+    Decode.map4
+        videoWithId
+        (Decode.field "id" Decode.string)
         (Decode.at [ "videos", "standard_resolution", "url" ] Decode.string)
         (Decode.at [ "images", "standard_resolution", "url" ] Decode.string)
         (Decode.at [ "caption", "text" ] Decode.string |> Decode.andThen caption)
@@ -45,7 +55,7 @@ caption =
         >> Maybe.withDefault (Decode.fail "No caption")
 
 
-random : List Video -> Generator (Maybe Video)
-random list =
-    Random.int 0 (List.length list - 1)
-        |> Random.map ((flip List.drop) list >> List.head)
+random : Dict String Video -> Generator String
+random dict =
+    Random.int 0 (List.length (Dict.keys dict) - 1)
+        |> Random.map ((flip List.drop) (Dict.keys dict) >> List.head >> Maybe.withDefault "")
