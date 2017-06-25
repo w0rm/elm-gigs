@@ -9,7 +9,7 @@ import Dict exposing (Dict)
 
 type Msg
     = VideosLoad (Result Http.Error (Dict String Video))
-    | RandomVideo String
+    | NavigateTo String
     | ClipLoad String
     | Measured Word
     | PlayRandom

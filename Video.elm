@@ -3,6 +3,7 @@ module Video exposing (Video, videos, random)
 import Json.Decode as Decode exposing (Decoder)
 import Random exposing (Generator)
 import String
+import Char
 import Dict exposing (Dict)
 
 
@@ -16,22 +17,44 @@ type alias Video =
 
 videos : Decoder (Dict String Video)
 videos =
-    Decode.map
-        (List.filterMap identity >> Dict.fromList)
-        (Decode.list (Decode.maybe video))
+    Decode.maybe video
+        |> Decode.list
+        |> Decode.map (List.foldl addVideo Dict.empty)
 
 
-{-| Point free or die: <https://www.youtube.com/watch?v=seVSlKazsNk>
--}
-videoWithId : String -> String -> String -> String -> ( String, Video )
-videoWithId id =
-    ((<<) << (<<) << (<<)) ((,) id) (Video id)
+addVideo : Maybe Video -> Dict String Video -> Dict String Video
+addVideo maybeVideo videos =
+    case maybeVideo of
+        Just video ->
+            let
+                slug =
+                    findSlug videos (captionToSlug video.caption) 0
+            in
+                Dict.insert slug video videos
+
+        Nothing ->
+            videos
 
 
-video : Decoder ( String, Video )
+findSlug : Dict String a -> String -> Int -> String
+findSlug dict str n =
+    let
+        key =
+            if n == 0 then
+                str
+            else
+                str ++ "-" ++ toString n
+    in
+        if Dict.member key dict then
+            findSlug dict str (n + 1)
+        else
+            key
+
+
+video : Decoder Video
 video =
     Decode.map4
-        videoWithId
+        Video
         (Decode.field "id" Decode.string)
         (Decode.at [ "videos", "standard_resolution", "url" ] Decode.string)
         (Decode.at [ "images", "standard_resolution", "url" ] Decode.string)
@@ -50,9 +73,35 @@ caption =
                         Nothing
 
                     value ->
-                        Just (Decode.succeed value)
+                        value
+                            |> String.foldr replaceChars ""
+                            |> Decode.succeed
+                            |> Just
             )
         >> Maybe.withDefault (Decode.fail "No caption")
+
+
+captionToSlug : String -> String
+captionToSlug =
+    String.toLower
+        >> String.filter (\c -> Char.isLower c || Char.isDigit c || c == ' ')
+        >> String.words
+        >> String.join "-"
+
+
+{-| Remove some umlauts
+-}
+replaceChars : Char -> String -> String
+replaceChars char =
+    case char of
+        'ç' ->
+            String.cons 'c'
+
+        'ü' ->
+            (++) "ue"
+
+        _ ->
+            String.cons char
 
 
 random : Dict String Video -> Generator String

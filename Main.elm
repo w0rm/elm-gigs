@@ -5,40 +5,52 @@ import View
 import Http
 import Model exposing (Model, ClipState(..), VideosState(..))
 import Message exposing (..)
-import Video
+import Video exposing (Video)
 import Task
-import Clip
+import Clip exposing (Clip, Word)
 import Random
 import Window
 import Navigation
-import Dict
+import Dict exposing (Dict)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         VideosLoad (Ok videos) ->
-            ( { model | videos = Success videos }
-            , case model.clip of
-                Url videoId ->
-                    Task.succeed videoId |> Task.perform ClipLoad
+            case model.clip of
+                Slug slug ->
+                    case Maybe.map Clip.initial (Dict.get slug videos) of
+                        Just ( clip, cmd ) ->
+                            ( { model
+                                | videos = Success videos
+                                , clip = Loaded clip
+                              }
+                            , Cmd.map Measured cmd
+                            )
+
+                        Nothing ->
+                            ( { model | videos = Success videos }
+                            , Random.generate NavigateTo (Video.random videos)
+                            )
 
                 _ ->
-                    Random.generate RandomVideo (Video.random videos)
-            )
+                    ( { model | videos = Success videos }
+                    , Random.generate NavigateTo (Video.random videos)
+                    )
 
         VideosLoad (Err _) ->
             ( model, Cmd.none )
 
-        ClipLoad videoId ->
+        ClipLoad slug ->
             case model.videos of
                 NotAsked ->
                     ( { model
                         | clip =
-                            if videoId == "" then
+                            if slug == "" then
                                 Initial
                             else
-                                Url videoId
+                                Slug slug
                         , videos = Loading
                       }
                     , Cmd.batch
@@ -53,15 +65,11 @@ update msg model =
                     ( model, Cmd.none )
 
                 Success videos ->
-                    case Dict.get videoId videos of
-                        Just video ->
-                            let
-                                ( clip, cmd ) =
-                                    Clip.initial video
-                            in
-                                ( { model | clip = Loaded clip }
-                                , Cmd.map Measured cmd
-                                )
+                    case Maybe.map Clip.initial (Dict.get slug videos) of
+                        Just ( clip, cmd ) ->
+                            ( { model | clip = Loaded clip }
+                            , Cmd.map Measured cmd
+                            )
 
                         Nothing ->
                             ( model, Cmd.none )
@@ -84,14 +92,14 @@ update msg model =
             ( { model | count = model.count + 1 }
             , case model.videos of
                 Success videos ->
-                    Random.generate RandomVideo (Video.random videos)
+                    Random.generate NavigateTo (Video.random videos)
 
                 _ ->
                     Cmd.none
             )
 
-        RandomVideo videoId ->
-            ( model, Navigation.newUrl ("#" ++ videoId) )
+        NavigateTo slug ->
+            ( model, Navigation.newUrl ("#" ++ slug) )
 
         WindowSize size ->
             { model | size = size } ! []

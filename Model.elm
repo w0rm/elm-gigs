@@ -8,7 +8,7 @@ import Dict exposing (Dict)
 
 type ClipState
     = Initial
-    | Url String
+    | Slug String
     | Loaded Clip
 
 
