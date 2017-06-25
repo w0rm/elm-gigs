@@ -5,7 +5,7 @@ import Html.Attributes exposing (style, content, type_, src, attribute, property
 import Html.Events exposing (on, onClick)
 import Svg exposing (svg, text_, text, mask, rect, tspan, g)
 import Svg.Attributes exposing (viewBox, id, x, y, dy, dx, width, height, fill)
-import Model exposing (Model)
+import Model exposing (Model, ClipState(..))
 import Clip exposing (Clip, Word, maxWidth, minSpace)
 import Json.Decode as Decode
 import Message exposing (Msg(..))
@@ -30,10 +30,10 @@ view { clip, size, count } =
         []
         [ fontFace
         , case clip of
-            Just clip_ ->
+            Loaded clip_ ->
                 renderClip count size clip_
 
-            Nothing ->
+            _ ->
                 text ""
         ]
 
@@ -87,7 +87,7 @@ renderClip count dimensions { video, cover, lines, line, word, caption } =
                 , "font" ::: Clip.font
                 , "cursor" ::: "pointer"
                 ]
-            , onClick PlayEnd
+            , onClick PlayRandom
             ]
             [ Html.video
                 [ type_ "video/mp4"
@@ -96,8 +96,8 @@ renderClip count dimensions { video, cover, lines, line, word, caption } =
                 , autoplay True
                 , preload "none"
                 , property "muted" (bool False)
-                , on "ended" (Decode.succeed PlayEnd)
-                , on "error" (Decode.succeed PlayError)
+                , on "ended" (Decode.succeed PlayRandom)
+                , on "error" (Decode.succeed PlayRandom)
                 , style
                     [ "position" ::: "absolute"
                     , "width" ::: "100%"
