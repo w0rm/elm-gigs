@@ -10,13 +10,7 @@ import Clip exposing (Clip, Word, maxWidth, minSpace)
 import Json.Decode as Decode
 import Message exposing (Msg(..))
 import Window exposing (Size)
-import Json.Encode exposing (bool, string)
 import String
-
-
-(:::) : a -> b -> ( a, b )
-(:::) =
-    (,)
 
 
 toPx : number -> String
@@ -39,27 +33,28 @@ view { clip, size, count } =
 
 
 renderLine : Int -> Int -> List Word -> Html Msg
-renderLine size n line =
+renderLine size lineNumber line =
     let
         wordsWidth =
-            List.map .width line |> List.sum
+            List.foldr (.width >> (+)) 0 line
 
         spaceSize =
-            if n < size then
+            if lineNumber < size then
                 toFloat (maxWidth - wordsWidth) / toFloat (List.length line - 1)
             else
-                toFloat minSpace
+                -- don't stretch the spaces on the last line
+                minSpace
     in
         text_
-            [ y ((0.75 * toFloat (n + 1) |> toString) ++ "em")
+            [ y (toString (0.75 * toFloat (lineNumber + 1)) ++ "em")
             , x "0"
             ]
             (List.indexedMap (renderWord spaceSize) line)
 
 
 renderWord : Float -> Int -> Word -> Html Msg
-renderWord spaceSize n w =
-    if n == 0 then
+renderWord spaceSize wordNumber w =
+    if wordNumber == 0 then
         tspan [] [ text w.text ]
     else
         tspan [ dx (toPx spaceSize) ] [ text w.text ]
@@ -70,22 +65,16 @@ renderClip count dimensions { video, cover, lines, line, word, caption } =
     let
         size =
             min (min dimensions.width dimensions.height - 50) 800
-
-        left =
-            (dimensions.width - size) // 2
-
-        top =
-            (dimensions.height - size) // 2
     in
         div
             [ style
-                [ "position" ::: "absolute"
-                , "left" ::: toPx left
-                , "top" ::: toPx top
-                , "width" ::: toPx size
-                , "height" ::: toPx size
-                , "font" ::: Clip.font
-                , "cursor" ::: "pointer"
+                [ ( "position", "absolute" )
+                , ( "left", toPx ((dimensions.width - size) // 2) )
+                , ( "top", toPx ((dimensions.height - size) // 2) )
+                , ( "width", toPx size )
+                , ( "height", toPx size )
+                , ( "font", Clip.font )
+                , ( "cursor", "pointer" )
                 ]
             , onClick PlayRandom
             ]
@@ -95,23 +84,22 @@ renderClip count dimensions { video, cover, lines, line, word, caption } =
                 , attribute "poster" cover
                 , autoplay True
                 , preload "none"
-                , property "muted" (bool False)
                 , on "ended" (Decode.succeed PlayRandom)
                 , on "error" (Decode.succeed PlayRandom)
                 , style
-                    [ "position" ::: "absolute"
-                    , "width" ::: "100%"
-                    , "height" ::: "100%"
-                    , "background" ::: "black"
+                    [ ( "position", "absolute" )
+                    , ( "width", "100%" )
+                    , ( "height", "100%" )
+                    , ( "background", "black" )
                     ]
                 ]
                 []
             , svg
                 [ viewBox "0 0 640 640"
                 , style
-                    [ "position" ::: "absolute"
-                    , "width" ::: "101%"
-                    , "height" ::: "101%"
+                    [ ( "position", "absolute" )
+                    , ( "width", "101%" )
+                    , ( "height", "101%" )
                     ]
                 ]
                 [ mask
@@ -125,7 +113,11 @@ renderClip count dimensions { video, cover, lines, line, word, caption } =
                         , fill "#fff"
                         ]
                         []
-                    , g [] (List.indexedMap (renderLine (List.length lines)) (lines ++ [ line ++ [ word ] ]))
+                    , g []
+                        (List.indexedMap
+                            (renderLine (List.length lines))
+                            (lines ++ [ line ++ [ word ] ])
+                        )
                     ]
                 , rect
                     [ x "0"

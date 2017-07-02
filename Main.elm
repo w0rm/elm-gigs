@@ -3,7 +3,7 @@ module Gigs exposing (main)
 import Navigation
 import View
 import Http
-import Model exposing (Model, ClipState(..), VideosState(..))
+import Model exposing (Model, ClipState(..))
 import Message exposing (..)
 import Video exposing (Video)
 import Task
@@ -14,65 +14,43 @@ import Navigation
 import Dict exposing (Dict)
 
 
+main : Program Never Model Msg
+main =
+    Navigation.program
+        (.hash >> String.dropLeft 1 >> LoadClip)
+        { init = .hash >> String.dropLeft 1 >> init
+        , view = View.view
+        , update = update
+        , subscriptions = always (Window.resizes WindowSize)
+        }
+
+
+init : String -> ( Model, Cmd Msg )
+init slug =
+    ( Model.initial slug
+    , Cmd.batch
+        [ Native.Measure.measure Clip.font "trigger the font load"
+            |> Task.andThen (always (Http.toTask (Http.get "/videos.json" Video.videos)))
+            |> Task.attempt VideosLoad
+        , Task.perform WindowSize Window.size
+        ]
+    )
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        VideosLoad (Ok videos) ->
-            case model.clip of
-                Slug slug ->
-                    case Maybe.map Clip.initial (Dict.get slug videos) of
-                        Just ( clip, cmd ) ->
-                            ( { model
-                                | videos = Success videos
-                                , clip = Loaded clip
-                              }
-                            , Cmd.map Measured cmd
-                            )
+        VideosLoad videos ->
+            loadClip { model | videos = Result.toMaybe videos }
 
-                        Nothing ->
-                            ( { model | videos = Success videos }
-                            , Random.generate NavigateTo (Video.random videos)
-                            )
+        PlayRandom ->
+            navigateToRandomVideo model
 
-                _ ->
-                    ( { model | videos = Success videos }
-                    , Random.generate NavigateTo (Video.random videos)
-                    )
+        NavigateTo slug ->
+            ( model, Navigation.newUrl ("#" ++ slug) )
 
-        VideosLoad (Err _) ->
-            ( model, Cmd.none )
-
-        ClipLoad slug ->
-            case model.videos of
-                NotAsked ->
-                    ( { model
-                        | clip =
-                            if slug == "" then
-                                Initial
-                            else
-                                Slug slug
-                        , videos = Loading
-                      }
-                    , Cmd.batch
-                        [ Native.Measure.measure Clip.font "trigger the font"
-                            |> Task.andThen (always (Http.toTask (Http.get "/videos.json" Video.videos)))
-                            |> Task.attempt VideosLoad
-                        , Task.perform WindowSize Window.size
-                        ]
-                    )
-
-                Loading ->
-                    ( model, Cmd.none )
-
-                Success videos ->
-                    case Maybe.map Clip.initial (Dict.get slug videos) of
-                        Just ( clip, cmd ) ->
-                            ( { model | clip = Loaded clip }
-                            , Cmd.map Measured cmd
-                            )
-
-                        Nothing ->
-                            ( model, Cmd.none )
+        LoadClip slug ->
+            loadClip { model | clip = Slug slug }
 
         Measured line ->
             case model.clip of
@@ -88,29 +66,42 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        PlayRandom ->
-            ( { model | count = model.count + 1 }
-            , case model.videos of
-                Success videos ->
-                    Random.generate NavigateTo (Video.random videos)
+        WindowSize size ->
+            ( { model | size = size }, Cmd.none )
 
-                _ ->
-                    Cmd.none
+
+loadClip : Model -> ( Model, Cmd Msg )
+loadClip model =
+    case ( model.videos, model.clip ) of
+        ( Just videos, Slug slug ) ->
+            initClip videos slug model
+
+        ( Just videos, Initial ) ->
+            navigateToRandomVideo model
+
+        _ ->
+            ( model, Cmd.none )
+
+
+initClip : Dict String Video -> String -> Model -> ( Model, Cmd Msg )
+initClip videos slug model =
+    case Maybe.map Clip.initial (Dict.get slug videos) of
+        Just ( clip, cmd ) ->
+            ( { model | clip = Loaded clip }
+            , Cmd.map Measured cmd
             )
 
-        NavigateTo slug ->
-            ( model, Navigation.newUrl ("#" ++ slug) )
-
-        WindowSize size ->
-            { model | size = size } ! []
+        Nothing ->
+            navigateToRandomVideo model
 
 
-main : Program Never Model Msg
-main =
-    Navigation.program
-        (.hash >> String.dropLeft 1 >> ClipLoad)
-        { init = .hash >> String.dropLeft 1 >> ClipLoad >> ((flip update) Model.initial)
-        , view = View.view
-        , update = update
-        , subscriptions = always (Window.resizes WindowSize)
-        }
+navigateToRandomVideo : Model -> ( Model, Cmd Msg )
+navigateToRandomVideo model =
+    case model.videos of
+        Just videos ->
+            ( { model | count = model.count + 1 }
+            , Random.generate NavigateTo (Video.random videos)
+            )
+
+        Nothing ->
+            ( model, Cmd.none )

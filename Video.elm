@@ -106,5 +106,9 @@ replaceChars char =
 
 random : Dict String Video -> Generator String
 random dict =
-    Random.int 0 (List.length (Dict.keys dict) - 1)
-        |> Random.map ((flip List.drop) (Dict.keys dict) >> List.head >> Maybe.withDefault "")
+    let
+        keys =
+            Dict.keys dict
+    in
+        Random.int 0 (List.length keys - 1)
+            |> Random.map ((flip List.drop) keys >> List.head >> Maybe.withDefault "")

@@ -22,7 +22,7 @@ maxLines =
     8
 
 
-minSpace : Int
+minSpace : number
 minSpace =
     30
 
@@ -108,10 +108,12 @@ update ({ text, width } as newWord) clip =
             | lines = clip.lines ++ [ addWord clip.word clip.line ]
             , line =
                 []
-                -- start new line
+
+            -- start new line
             , word =
                 Word "" 0
-                -- start new word
+
+            -- start new word
           }
         , measureText (String.dropLeft (String.length text - 1) text)
         )
@@ -123,11 +125,13 @@ update ({ text, width } as newWord) clip =
                     { clip
                         | line =
                             addWord newWord clip.line
-                            -- add new word
+
+                        -- add new word
                         , caption = rest ++ " "
                         , word =
                             Word "" 0
-                            -- start new word
+
+                        -- start new word
                     }
 
             Just ( char, rest ) ->

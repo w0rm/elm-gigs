@@ -1,4 +1,4 @@
-module Model exposing (Model, ClipState(..), VideosState(..), initial)
+module Model exposing (Model, ClipState(..), initial)
 
 import Video exposing (Video)
 import Clip exposing (Clip)
@@ -12,20 +12,22 @@ type ClipState
     | Loaded Clip
 
 
-type VideosState
-    = NotAsked
-    | Loading
-    | Success (Dict String Video)
-
-
 type alias Model =
-    { videos : VideosState
+    { videos : Maybe (Dict String Video)
     , clip : ClipState
     , count : Int
     , size : Size
     }
 
 
-initial : Model
-initial =
-    Model NotAsked Initial 0 (Size 0 0)
+initial : String -> Model
+initial slug =
+    { videos = Nothing
+    , clip =
+        if slug == "" then
+            Initial
+        else
+            Slug slug
+    , count = 0
+    , size = Size 0 0
+    }

@@ -9,8 +9,8 @@ import Dict exposing (Dict)
 
 type Msg
     = VideosLoad (Result Http.Error (Dict String Video))
-    | NavigateTo String
-    | ClipLoad String
-    | Measured Word
     | PlayRandom
+    | NavigateTo String
+    | LoadClip String
+    | Measured Word
     | WindowSize Size
