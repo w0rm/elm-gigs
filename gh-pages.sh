@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ev
+set -e
 
 rm -rf gh-pages || exit 0;
 
