@@ -1,6 +1,7 @@
 language: node_js
 cache:
   directories:
+    - sysconfcpus
     - node_modules
     - elm-stuff
 git:
@@ -8,8 +9,21 @@ git:
 branches:
   only:
     - master
+before_install:
+  - | # epic build time improvement - see https://github.com/elm-lang/elm-compiler/issues/1473#issuecomment-245704142
+    if [ ! -d sysconfcpus/bin ];
+    then
+      git clone https://github.com/obmarg/libsysconfcpus.git;
+      cd libsysconfcpus;
+      ./configure --prefix=$TRAVIS_BUILD_DIR/sysconfcpus;
+      make && make install;
+      cd ..;
+    fi
 install:
   - npm install -g elm@0.18.0
+  - mv $(npm config get prefix)/bin/elm-make $(npm config get prefix)/bin/elm-make-old
+  - printf '%s\n\n' '#!/bin/bash' 'echo "Running elm-make with sysconfcpus -n 2"' '$TRAVIS_BUILD_DIR/sysconfcpus/bin/sysconfcpus -n 2 elm-make-old "$@"' > $(npm config get prefix)/bin/elm-make
+  - chmod +x $(npm config get prefix)/bin/elm-make  
 env:
   global:
     - secure: "eTsRk5uLTakUMhMstfWWhIczycPcOYQDxyeY3Xx3BNcXki6ndiJxu9k+4stbM49nMMAjmjyiEAJ1x4VAeWDRXOW7I6SaJCO/r9AEjQHtWod/Wz8RTQj8sVKZwL7jAYwls42r3gyjsMb1Wlrd35JFhgLYRZt+FTEjy02OYx+Wffa+kIu3THDirYjb2Kzzl7YwKSyApBHkFwv7VQJKLAqK04AdicxUWfGihote0VNMOxWCeWPnVl8ZEOUCAzn9SuP2tD+9UBjP88QQe67qdR2/HNptWasq5OThlBpDuA9LcKNbe2q8IF7fTIzRXVv3e96zO9m5qBxutDBoRL02IQ4vGRpMKCN2DlhBqvkjOAN9K9ndxD6zzm/ZPNh+1YPne3Q50s8AjqMTBhAdkn1Pwieg48O+dSXeM2yUWnt3rThdLb/0THWsthWDcbLiCr789cc+IgR8h104Jn7bP59YpVToQyECU/Q1TwCeC+82+MX0Hulqockew3hoN2z3dfwaGcre98jc2avw8J7eJgru0Vex846pipe2ZGHtDij/yRfty8722w7S5nrXanFN4df7lCij+nDENpgvYNa3ifAEcgESp3XSip5DLl1pZr1FYaJJIV+G8Ue3dD9PwM3KCL5SZjeNnCxxqPLgbjjrvkK43+6w1jckrpBy2V4o28+DwQzUQ+A="
