@@ -5,11 +5,10 @@ rm -rf gh-pages || exit 0;
 
 mkdir -p gh-pages
 
-# compile JS using Elm
-elm make Main.elm --yes --output gh-pages/index.html
-
-# copy the json
-cp -R videos.json gh-pages/
+# compile and copy assets
+elm make Main.elm --yes --output gh-pages/elm.js
+sed 's/\/_compile\/Main\.elm/elm\.js/g' index.html > gh-pages/index.html
+cp videos.json gh-pages/
 
 # configure domain
 cd gh-pages

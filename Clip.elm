@@ -2,9 +2,6 @@ module Clip exposing (Clip, Word, initial, update, lineWidth, maxWidth, minSpace
 
 import Video exposing (Video)
 import String
-import Native.Measure
-import Task
-import Process
 
 
 font : String
@@ -48,7 +45,7 @@ type alias Clip =
     }
 
 
-initial : Video -> ( Clip, Cmd Word )
+initial : Video -> ( Clip, Maybe String )
 initial { video, cover, caption } =
     start
         { video = video
@@ -77,18 +74,18 @@ lineWidth line =
                 )
 
 
-start : Clip -> ( Clip, Cmd Word )
+start : Clip -> ( Clip, Maybe String )
 start clip =
     case String.uncons clip.caption of
         Just ( char, rest ) ->
             ( { clip
                 | caption = rest ++ String.fromChar char
               }
-            , measureText (String.fromChar char)
+            , Just (String.fromChar char)
             )
 
         Nothing ->
-            ( clip, Cmd.none )
+            ( clip, Nothing )
 
 
 addWord : Word -> List Word -> List Word
@@ -99,10 +96,10 @@ addWord word line =
         line ++ [ word ]
 
 
-update : Word -> Clip -> ( Clip, Cmd Word )
+update : Word -> Clip -> ( Clip, Maybe String )
 update ({ text, width } as newWord) clip =
     if List.length clip.lines == maxLines then
-        clip ! []
+        ( clip, Nothing )
     else if lineWidth (addWord newWord clip.line) >= maxWidth then
         ( { clip
             | lines = clip.lines ++ [ addWord clip.word clip.line ]
@@ -115,7 +112,7 @@ update ({ text, width } as newWord) clip =
 
             -- start new word
           }
-        , measureText (String.dropLeft (String.length text - 1) text)
+        , Just (String.dropLeft (String.length text - 1) text)
         )
     else
         case String.uncons clip.caption of
@@ -139,25 +136,8 @@ update ({ text, width } as newWord) clip =
                     | word = newWord
                     , caption = rest ++ String.fromChar char
                   }
-                , measureText (text ++ String.fromChar char)
+                , Just (text ++ String.fromChar char)
                 )
 
             Nothing ->
-                clip ! []
-
-
-measureText : String -> Cmd Word
-measureText text =
-    Task.perform
-        (.width >> Word text)
-        (text
-            |> Native.Measure.measure font
-            |> (if showProgress then
-                    Task.andThen
-                        (\val ->
-                            Task.andThen (\_ -> Task.succeed val) (Process.sleep 50)
-                        )
-                else
-                    identity
-               )
-        )
+                ( clip, Nothing )
