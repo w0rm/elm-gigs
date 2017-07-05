@@ -1,4 +1,4 @@
-module Gigs exposing (main)
+port module Gigs exposing (main)
 
 import Navigation
 import View
@@ -14,6 +14,16 @@ import Navigation
 import Dict exposing (Dict)
 
 
+{-| port for sending text to measure out to JavaScript
+-}
+port measure : { font : String, text : String } -> Cmd msg
+
+
+{-| port for listening for measurements from JavaScript
+-}
+port measurements : (Word -> msg) -> Sub msg
+
+
 main : Program Never Model Msg
 main =
     Navigation.program
@@ -21,7 +31,13 @@ main =
         { init = .hash >> String.dropLeft 1 >> init
         , view = View.view
         , update = update
-        , subscriptions = always (Window.resizes WindowSize)
+        , subscriptions =
+            always
+                (Sub.batch
+                    [ Window.resizes WindowSize
+                    , measurements Measured
+                    ]
+                )
         }
 
 
@@ -29,9 +45,8 @@ init : String -> ( Model, Cmd Msg )
 init slug =
     ( Model.initial slug
     , Cmd.batch
-        [ Native.Measure.measure Clip.font "trigger the font load"
-            |> Task.andThen (always (Http.toTask (Http.get "/videos.json" Video.videos)))
-            |> Task.attempt VideosLoad
+        [ Http.get "/videos.json" Video.videos
+            |> Http.send VideosLoad
         , Task.perform WindowSize Window.size
         ]
     )
@@ -52,15 +67,20 @@ update msg model =
         LoadClip slug ->
             loadClip { model | clip = Slug slug }
 
-        Measured line ->
+        Measured word ->
             case model.clip of
                 Loaded clip ->
                     let
                         ( newClip, cmd ) =
-                            Clip.update line clip
+                            Clip.update word clip
                     in
                         ( { model | clip = Loaded newClip }
-                        , Cmd.map Measured cmd
+                        , case cmd of
+                            Just text ->
+                                measure { font = Clip.font, text = text }
+
+                            Nothing ->
+                                Cmd.none
                         )
 
                 _ ->
@@ -88,7 +108,12 @@ initClip videos slug model =
     case Maybe.map Clip.initial (Dict.get slug videos) of
         Just ( clip, cmd ) ->
             ( { model | clip = Loaded clip }
-            , Cmd.map Measured cmd
+            , case cmd of
+                Just text ->
+                    measure { font = Clip.font, text = text }
+
+                Nothing ->
+                    Cmd.none
             )
 
         Nothing ->
