@@ -94,6 +94,9 @@ captionToSlug =
 replaceChars : Char -> String -> String
 replaceChars char =
     case char of
+        'ó' ->
+            String.cons 'o'
+            
         'ç' ->
             String.cons 'c'
 
