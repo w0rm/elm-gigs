@@ -8,10 +8,8 @@ import Dict exposing (Dict)
 
 
 type alias Video =
-    { id : String
-    , video : String
-    , cover : String
-    , caption : String
+    { createdTime : Int
+    , title : String
     }
 
 
@@ -28,7 +26,7 @@ addVideo maybeVideo videos =
         Just video ->
             let
                 slug =
-                    findSlug videos (captionToSlug video.caption) 0
+                    findSlug videos (captionToSlug video.title) 0
             in
                 Dict.insert slug video videos
 
@@ -53,19 +51,16 @@ findSlug dict str n =
 
 video : Decoder Video
 video =
-    Decode.map4
+    Decode.map2
         Video
-        (Decode.field "id" Decode.string)
-        (Decode.at [ "videos", "standard_resolution", "url" ] Decode.string)
-        (Decode.at [ "images", "standard_resolution", "url" ] Decode.string)
-        (Decode.at [ "caption", "text" ] Decode.string |> Decode.andThen caption)
+        (Decode.field "created_time" Decode.int)
+        (Decode.at [ "title" ] Decode.string |> Decode.andThen caption)
 
 
 caption : String -> Decoder String
 caption =
-    String.split "#"
+    String.split "-" 
         >> List.head
-        >> Maybe.andThen (String.split "-" >> List.head)
         >> Maybe.andThen
             (\result ->
                 case String.trim result of

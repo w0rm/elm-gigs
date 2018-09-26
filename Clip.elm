@@ -46,11 +46,11 @@ type alias Clip =
 
 
 initial : Video -> ( Clip, Maybe String )
-initial { video, cover, caption } =
+initial { createdTime, title } =
     start
-        { video = video
-        , cover = cover
-        , caption = caption ++ " "
+        { video = "http://gigs-static.unsoundscapes.com/videos/" ++ toString createdTime ++ ".mp4"
+        , cover =  "http://gigs-static.unsoundscapes.com/videos/" ++ toString createdTime ++ ".jpg"
+        , caption = title ++ " "
         , word = Word "" 0
         , line = []
         , lines = []

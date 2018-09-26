@@ -2,7 +2,7 @@
 
 **Note:** this demo only works in Chome and Firefox.
 
-The idea is to present the short videoclips I took at gigs from my [Instagram](https://www.instagram.com/unsoundscapes/).
+The idea is to present the short videoclips I took at gigs in 2014-2017.
 
 Each video is masked by a band's name using [the MOD font](http://www.fontfabric.com/mod-font/)
 from the Fontfabric type foundry.
@@ -16,11 +16,8 @@ from the Fontfabric type foundry.
   [svg mask element](https://developer.mozilla.org/en/docs/Web/SVG/Element/mask)
 * The text layout is calculated by measuring the size of words
   and breaking the lines where necessary, using ports
-* [Instagram recent media endpoint](https://www.instagram.com/developer/endpoints/users/#get_users_media_recent_self)
-  is used to fetch the data, check the `download.sh` script
 * And of course its being coded in [the Elm language](http://elm-lang.org/),
   just as my [current homepage](https://github.com/w0rm/elm-unsoundscapes)
-* There is a Travis job that pulls new videos runs on each commit to master and once per day
 
 # Running the demo
 
