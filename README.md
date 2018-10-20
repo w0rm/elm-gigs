@@ -21,4 +21,6 @@ from the Fontfabric type foundry.
 
 # Running the demo
 
-`elm reactor` and then open http://localhost:8000/index.html
+1. `elm make Main.elm --output elm.js`
+2. Start a webserver `python -m SimpleHTTPServer`
+3. Open [index.html](http://localhost:8000)

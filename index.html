@@ -15,10 +15,9 @@
     </style>
   </head>
   <body>
-    <script src="/_compile/Main.elm"></script>
+    <script src="elm.js"></script>
     <script>
-      // init the app
-      var app = Elm.Gigs.fullscreen();
+      var app = Elm.Gigs.init();
       // create the element to measure text
       var canvas = document.createElement('canvas');
       var ctx = canvas.getContext('2d');

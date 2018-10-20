@@ -1,9 +1,9 @@
-module Model exposing (Model, ClipState(..), initial)
+module Model exposing (ClipState(..), Model, initial)
 
-import Video exposing (Video)
+import Browser.Navigation exposing (Key)
 import Clip exposing (Clip)
-import Window exposing (Size)
 import Dict exposing (Dict)
+import Video exposing (Video)
 
 
 type ClipState
@@ -16,18 +16,24 @@ type alias Model =
     { videos : Maybe (Dict String Video)
     , clip : ClipState
     , count : Int
-    , size : Size
+    , width : Float
+    , height : Float
+    , key : Key
     }
 
 
-initial : String -> Model
-initial slug =
+initial : Maybe String -> Key -> Model
+initial fragment key =
     { videos = Nothing
     , clip =
-        if slug == "" then
-            Initial
-        else
-            Slug slug
+        case fragment of
+            Nothing ->
+                Initial
+
+            Just slug ->
+                Slug slug
     , count = 0
-    , size = Size 0 0
+    , width = 0
+    , height = 0
+    , key = key
     }
