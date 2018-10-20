@@ -82,6 +82,7 @@ renderClip count width_ height_ { video, cover, lines, line, word, caption } =
             , src (video ++ "#" ++ String.fromInt count)
             --, attribute "poster" cover
             , autoplay True
+            , attribute "playsinline" "playsinline"
             , property "muted" (Encode.bool True)
             , preload "none"
             , on "ended" (Decode.succeed PlayRandom)
