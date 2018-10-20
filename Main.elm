@@ -8,7 +8,7 @@ import Clip exposing (Clip, Word)
 import Dict exposing (Dict)
 import Http
 import Message exposing (..)
-import Model exposing (ClipState(..), Model)
+import Model exposing (ClipState(..), Model, SoundState(..))
 import Random
 import Task
 import Url exposing (Url)
@@ -63,6 +63,12 @@ update msg model =
 
         PlayRandom ->
             navigateToRandomVideo model
+
+        ShowSoundButton ->
+            ( { model | sound = Shown }, Cmd.none )
+
+        EnableSound ->
+            ( { model | sound = Enabled }, Cmd.none )
 
         NavigateTo slug ->
             ( model, Navigation.pushUrl model.key ("#" ++ slug) )

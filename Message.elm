@@ -9,6 +9,8 @@ import Video exposing (Video)
 type Msg
     = VideosLoad (Result Http.Error (Dict String Video))
     | PlayRandom
+    | ShowSoundButton
+    | EnableSound
     | NavigateTo String
     | LoadClip (Maybe String)
     | Measured Word

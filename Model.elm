@@ -1,4 +1,4 @@
-module Model exposing (ClipState(..), Model, initial)
+module Model exposing (ClipState(..), Model, SoundState(..), initial)
 
 import Browser.Navigation exposing (Key)
 import Clip exposing (Clip)
@@ -12,6 +12,12 @@ type ClipState
     | Loaded Clip
 
 
+type SoundState
+    = Hidden
+    | Shown
+    | Enabled
+
+
 type alias Model =
     { videos : Maybe (Dict String Video)
     , clip : ClipState
@@ -19,6 +25,7 @@ type alias Model =
     , width : Int
     , height : Int
     , key : Key
+    , sound : SoundState
     }
 
 
@@ -36,4 +43,5 @@ initial fragment key =
     , width = 0
     , height = 0
     , key = key
+    , sound = Shown
     }

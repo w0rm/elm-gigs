@@ -2,13 +2,14 @@ module View exposing (view)
 
 import Browser exposing (Document)
 import Clip exposing (Clip, Word, maxWidth, minSpace)
+import Debug
 import Html exposing (Html, div, node)
 import Html.Attributes exposing (attribute, autoplay, preload, property, src, style, type_)
-import Html.Events exposing (on, onClick)
+import Html.Events exposing (on, stopPropagationOn)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Message exposing (Msg(..))
-import Model exposing (ClipState(..), Model)
+import Model exposing (ClipState(..), Model, SoundState(..))
 import String
 import Svg exposing (g, mask, rect, svg, text, text_, tspan)
 import Svg.Attributes exposing (dx, dy, fill, height, id, viewBox, width, x, y)
@@ -20,11 +21,11 @@ toPx px =
 
 
 view : Model -> Document Msg
-view ({ clip, width, height, count } as m) =
+view ({ clip, width, height, count, sound } as m) =
     case clip of
         Loaded clip_ ->
             { title = clip_.title
-            , body = [ renderClip count m.width m.height clip_ ]
+            , body = [ renderClip sound count m.width m.height clip_ ]
             }
 
         _ ->
@@ -39,7 +40,7 @@ renderLine size lineNumber line =
 
         spaceSize =
             if lineNumber < size then
-                 (maxWidth - wordsWidth) // (List.length line - 1)
+                (maxWidth - wordsWidth) // (List.length line - 1)
 
             else
                 -- don't stretch the spaces on the last line
@@ -61,8 +62,8 @@ renderWord spaceSize wordNumber w =
         tspan [ dx (toPx spaceSize) ] [ text w.text ]
 
 
-renderClip : Int -> Int -> Int -> Clip -> Html Msg
-renderClip count width_ height_ { video, cover, lines, line, word, caption } =
+renderClip : SoundState -> Int -> Int -> Int -> Clip -> Html Msg
+renderClip sound count width_ height_ { video, cover, lines, line, word, caption } =
     let
         size =
             min (min width_ height_ - 50) 800
@@ -75,18 +76,28 @@ renderClip count width_ height_ { video, cover, lines, line, word, caption } =
         , style "height" (toPx size)
         , style "font" Clip.font
         , style "cursor" "pointer"
-        , onClick PlayRandom
+        , stopPropagationOn "click"
+            (Decode.succeed <|
+                case sound of
+                    Hidden ->
+                        ( Noop, True )
+
+                    Shown ->
+                        ( EnableSound, True )
+
+                    Enabled ->
+                        ( PlayRandom, True )
+            )
         ]
         [ Html.video
             [ type_ "video/mp4"
             , src (video ++ "#" ++ String.fromInt count)
-            --, attribute "poster" cover
             , autoplay True
             , attribute "playsinline" "playsinline"
-            , property "muted" (Encode.bool True)
-            , preload "none"
+            , property "muted" (Encode.bool (sound /= Enabled))
             , on "ended" (Decode.succeed PlayRandom)
             , on "error" (Decode.succeed PlayRandom)
+            , on "metadata" (Decode.succeed ShowSoundButton)
             , style "position" "absolute"
             , style "width" "100%"
             , style "height" "100%"
