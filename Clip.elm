@@ -1,7 +1,7 @@
-module Clip exposing (Clip, Word, initial, update, lineWidth, maxWidth, minSpace, font)
+module Clip exposing (Clip, Word, font, initial, lineWidth, maxWidth, minSpace, update)
 
-import Video exposing (Video)
 import String
+import Video exposing (Video)
 
 
 font : String
@@ -37,6 +37,7 @@ type alias Word =
 
 type alias Clip =
     { video : String
+    , title : String
     , cover : String
     , caption : String
     , word : Word
@@ -48,9 +49,10 @@ type alias Clip =
 initial : Video -> ( Clip, Maybe String )
 initial { createdTime, title } =
     start
-        { video = "http://gigs-static.unsoundscapes.com/videos/" ++ toString createdTime ++ ".mp4"
-        , cover =  "http://gigs-static.unsoundscapes.com/videos/" ++ toString createdTime ++ ".jpg"
+        { video = "http://gigs-static.unsoundscapes.com/videos/" ++ String.fromInt createdTime ++ ".mp4"
+        , cover = "http://gigs-static.unsoundscapes.com/videos/" ++ String.fromInt createdTime ++ ".jpg"
         , caption = title ++ " "
+        , title = title
         , word = Word "" 0
         , line = []
         , lines = []
@@ -63,15 +65,16 @@ lineWidth line =
         len =
             List.length line - 1
     in
-        line
-            |> List.map .width
-            |> List.sum
-            |> (+)
-                (if len > 0 then
-                    len * minSpace
-                 else
-                    0
-                )
+    line
+        |> List.map .width
+        |> List.sum
+        |> (+)
+            (if len > 0 then
+                len * minSpace
+
+             else
+                0
+            )
 
 
 start : Clip -> ( Clip, Maybe String )
@@ -92,6 +95,7 @@ addWord : Word -> List Word -> List Word
 addWord word line =
     if word.text == "" then
         line
+
     else
         line ++ [ word ]
 
@@ -100,6 +104,7 @@ update : Word -> Clip -> ( Clip, Maybe String )
 update ({ text, width } as newWord) clip =
     if List.length clip.lines == maxLines then
         ( clip, Nothing )
+
     else if lineWidth (addWord newWord clip.line) >= maxWidth then
         ( { clip
             | lines = clip.lines ++ [ addWord clip.word clip.line ]
@@ -114,6 +119,7 @@ update ({ text, width } as newWord) clip =
           }
         , Just (String.dropLeft (String.length text - 1) text)
         )
+
     else
         case String.uncons clip.caption of
             Just ( ' ', rest ) ->

@@ -1,17 +1,19 @@
 port module Gigs exposing (main)
 
-import Navigation
-import View
-import Http
-import Model exposing (Model, ClipState(..))
-import Message exposing (..)
-import Video exposing (Video)
-import Task
+import Browser
+import Browser.Dom exposing (getViewport)
+import Browser.Events exposing (onResize)
+import Browser.Navigation as Navigation exposing (Key)
 import Clip exposing (Clip, Word)
-import Random
-import Window
-import Navigation
 import Dict exposing (Dict)
+import Http
+import Message exposing (..)
+import Model exposing (ClipState(..), Model)
+import Random
+import Task
+import Url exposing (Url)
+import Video exposing (Video)
+import View
 
 
 {-| port for sending text to measure out to JavaScript
@@ -24,30 +26,31 @@ port measure : { font : String, text : String } -> Cmd msg
 port measurements : (Word -> msg) -> Sub msg
 
 
-main : Program Never Model Msg
+main : Program () Model Msg
 main =
-    Navigation.program
-        (.hash >> String.dropLeft 1 >> LoadClip)
-        { init = .hash >> String.dropLeft 1 >> init
+    Browser.application
+        { init = init
         , view = View.view
         , update = update
         , subscriptions =
             always
                 (Sub.batch
-                    [ Window.resizes WindowSize
+                    [ onResize (\w h -> WindowSize (toFloat w) (toFloat h))
                     , measurements Measured
                     ]
                 )
+        , onUrlRequest = always Noop
+        , onUrlChange = .fragment >> LoadClip
         }
 
 
-init : String -> ( Model, Cmd Msg )
-init slug =
-    ( Model.initial slug
+init : () -> Url -> Key -> ( Model, Cmd Msg )
+init _ url key =
+    ( Model.initial url.fragment key
     , Cmd.batch
         [ Http.get "/videos.json" Video.videos
             |> Http.send VideosLoad
-        , Task.perform WindowSize Window.size
+        , Task.perform (\{ viewport } -> WindowSize viewport.width viewport.height) getViewport
         ]
     )
 
@@ -62,10 +65,15 @@ update msg model =
             navigateToRandomVideo model
 
         NavigateTo slug ->
-            ( model, Navigation.newUrl ("#" ++ slug) )
+            ( model, Navigation.pushUrl model.key ("#" ++ slug) )
 
         LoadClip slug ->
-            loadClip { model | clip = Slug slug }
+            case slug of
+                Just slug_ ->
+                    loadClip { model | clip = Slug slug_ }
+
+                Nothing ->
+                    loadClip { model | clip = Initial }
 
         Measured word ->
             case model.clip of
@@ -74,20 +82,23 @@ update msg model =
                         ( newClip, cmd ) =
                             Clip.update word clip
                     in
-                        ( { model | clip = Loaded newClip }
-                        , case cmd of
-                            Just text ->
-                                measure { font = Clip.font, text = text }
+                    ( { model | clip = Loaded newClip }
+                    , case cmd of
+                        Just text ->
+                            measure { font = Clip.font, text = text }
 
-                            Nothing ->
-                                Cmd.none
-                        )
+                        Nothing ->
+                            Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
 
-        WindowSize size ->
-            ( { model | size = size }, Cmd.none )
+        WindowSize width height ->
+            ( { model | width = width, height = height }, Cmd.none )
+
+        Noop ->
+            ( model, Cmd.none )
 
 
 loadClip : Model -> ( Model, Cmd Msg )

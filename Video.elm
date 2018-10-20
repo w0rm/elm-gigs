@@ -1,10 +1,10 @@
-module Video exposing (Video, videos, random)
+module Video exposing (Video, random, videos)
 
+import Char
+import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder)
 import Random exposing (Generator)
 import String
-import Char
-import Dict exposing (Dict)
 
 
 type alias Video =
@@ -21,17 +21,17 @@ videos =
 
 
 addVideo : Maybe Video -> Dict String Video -> Dict String Video
-addVideo maybeVideo videos =
+addVideo maybeVideo videos_ =
     case maybeVideo of
-        Just video ->
+        Just video_ ->
             let
                 slug =
-                    findSlug videos (captionToSlug video.title) 0
+                    findSlug videos_ (captionToSlug video_.title) 0
             in
-                Dict.insert slug video videos
+            Dict.insert slug video_ videos_
 
         Nothing ->
-            videos
+            videos_
 
 
 findSlug : Dict String a -> String -> Int -> String
@@ -40,13 +40,15 @@ findSlug dict str n =
         key =
             if n == 0 then
                 str
+
             else
-                str ++ "-" ++ toString n
+                str ++ "-" ++ String.fromInt n
     in
-        if Dict.member key dict then
-            findSlug dict str (n + 1)
-        else
-            key
+    if Dict.member key dict then
+        findSlug dict str (n + 1)
+
+    else
+        key
 
 
 video : Decoder Video
@@ -59,7 +61,7 @@ video =
 
 caption : String -> Decoder String
 caption =
-    String.split "-" 
+    String.split "-"
         >> List.head
         >> Maybe.andThen
             (\result ->
@@ -91,7 +93,7 @@ replaceChars char =
     case char of
         'ó' ->
             String.cons 'o'
-            
+
         'ç' ->
             String.cons 'c'
 
@@ -108,5 +110,5 @@ random dict =
         keys =
             Dict.keys dict
     in
-        Random.int 0 (List.length keys - 1)
-            |> Random.map ((flip List.drop) keys >> List.head >> Maybe.withDefault "")
+    Random.int 0 (List.length keys - 1)
+        |> Random.map ((\b a -> List.drop a b) keys >> List.head >> Maybe.withDefault "")
