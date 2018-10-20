@@ -14,9 +14,9 @@ import Svg exposing (g, mask, rect, svg, text, text_, tspan)
 import Svg.Attributes exposing (dx, dy, fill, height, id, viewBox, width, x, y)
 
 
-toPx : Float -> String
+toPx : Int -> String
 toPx px =
-    String.fromFloat px ++ "px"
+    String.fromInt px ++ "px"
 
 
 view : Model -> Document Msg
@@ -39,7 +39,7 @@ renderLine size lineNumber line =
 
         spaceSize =
             if lineNumber < size then
-                toFloat (maxWidth - wordsWidth) / toFloat (List.length line - 1)
+                 (maxWidth - wordsWidth) // (List.length line - 1)
 
             else
                 -- don't stretch the spaces on the last line
@@ -52,7 +52,7 @@ renderLine size lineNumber line =
         (List.indexedMap (renderWord spaceSize) line)
 
 
-renderWord : Float -> Int -> Word -> Html Msg
+renderWord : Int -> Int -> Word -> Html Msg
 renderWord spaceSize wordNumber w =
     if wordNumber == 0 then
         tspan [] [ text w.text ]
@@ -61,7 +61,7 @@ renderWord spaceSize wordNumber w =
         tspan [ dx (toPx spaceSize) ] [ text w.text ]
 
 
-renderClip : Int -> Float -> Float -> Clip -> Html Msg
+renderClip : Int -> Int -> Int -> Clip -> Html Msg
 renderClip count width_ height_ { video, cover, lines, line, word, caption } =
     let
         size =
@@ -69,8 +69,8 @@ renderClip count width_ height_ { video, cover, lines, line, word, caption } =
     in
     div
         [ style "position" "absolute"
-        , style "left" (toPx ((width_ - size) / 2))
-        , style "top" (toPx ((height_ - size) / 2))
+        , style "left" (toPx ((width_ - size) // 2))
+        , style "top" (toPx ((height_ - size) // 2))
         , style "width" (toPx size)
         , style "height" (toPx size)
         , style "font" Clip.font
@@ -80,7 +80,7 @@ renderClip count width_ height_ { video, cover, lines, line, word, caption } =
         [ Html.video
             [ type_ "video/mp4"
             , src (video ++ "#" ++ String.fromInt count)
-            , attribute "poster" cover
+            --, attribute "poster" cover
             , autoplay True
             , property "muted" (Encode.bool True)
             , preload "none"

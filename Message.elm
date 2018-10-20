@@ -12,5 +12,5 @@ type Msg
     | NavigateTo String
     | LoadClip (Maybe String)
     | Measured Word
-    | WindowSize Float Float
+    | WindowSize Int Int
     | Noop

@@ -19,7 +19,7 @@ maxLines =
     8
 
 
-minSpace : number
+minSpace : Int
 minSpace =
     30
 

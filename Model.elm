@@ -16,8 +16,8 @@ type alias Model =
     { videos : Maybe (Dict String Video)
     , clip : ClipState
     , count : Int
-    , width : Float
-    , height : Float
+    , width : Int
+    , height : Int
     , key : Key
     }
 

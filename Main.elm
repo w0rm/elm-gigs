@@ -35,7 +35,7 @@ main =
         , subscriptions =
             always
                 (Sub.batch
-                    [ onResize (\w h -> WindowSize (toFloat w) (toFloat h))
+                    [ onResize WindowSize
                     , measurements Measured
                     ]
                 )
@@ -50,7 +50,7 @@ init _ url key =
     , Cmd.batch
         [ Http.get "/videos.json" Video.videos
             |> Http.send VideosLoad
-        , Task.perform (\{ viewport } -> WindowSize viewport.width viewport.height) getViewport
+        , Task.perform (\{ viewport } -> WindowSize (round viewport.width) (round viewport.height)) getViewport
         ]
     )
 
