@@ -1,4 +1,4 @@
-port module Gigs exposing (main)
+port module Main exposing (main)
 
 import Browser
 import Browser.Dom exposing (getViewport)
