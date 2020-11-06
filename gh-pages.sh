@@ -9,7 +9,6 @@ mkdir -p gh-pages
 elm make Main.elm --optimize --output gh-pages/elm-temp.js
 uglifyjs gh-pages/elm-temp.js --compress 'pure_funcs="F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9",pure_getters,keep_fargs=false,unsafe_comps,unsafe' | uglifyjs --mangle --output=gh-pages/elm.js
 rm gh-pages/elm-temp.js
-cp .gitattributes gh-pages/
 cp index.html gh-pages/
 cp videos.json gh-pages/
 cp -r videos gh-pages/

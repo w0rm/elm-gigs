@@ -49,8 +49,8 @@ type alias Clip =
 initial : Video -> ( Clip, Maybe String )
 initial { createdTime, title } =
     start
-        { video = "http://gigs.unsoundscapes.com/videos/" ++ String.fromInt createdTime ++ ".mp4"
-        , cover = "http://gigs.unsoundscapes.com/videos/" ++ String.fromInt createdTime ++ ".jpg"
+        { video = "/videos/" ++ String.fromInt createdTime ++ ".mp4"
+        , cover = "/videos/" ++ String.fromInt createdTime ++ ".jpg"
         , caption = title ++ " "
         , title = title
         , word = Word "" 0
